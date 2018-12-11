@@ -1,5 +1,168 @@
 # Changelog
 
+## 2.73.0
+
+Unit tests passing.
+
+Regression tests passing.
+
+* Added in-context editing support, support for the `contextual` flag, and `skipInitialModal` support for areas and singletons nested in fields of type `object`. Many thanks to Michelin for making this feature possible through their participation in [Apostrophe Enterprise Support](https://apostrophecms.org/support/enterprise-support).
+* The `date` Nunjucks filter now accepts `locale` as a second argument. If `locale` is not present and `req.locale` is set, that locale is used, rather than the default system locale. Thanks to Tim Otlik.
+* Removed nuisance warnings about tolerant sanitization.
+* When using the `passwordReset: true` feature of `apostrophe-login`, you may also set the `passwordResetSubject` option to a custom subject line for the password reset email message.
+* The mechanism that sends the password reset request confirmation email has been factored out to the `apos.login.sendPasswordResetEmail(req, user)` method, so you can trigger it for your own reasons. This method returns a promise; when that promise resolves the password reset email has been successfully handed off for delivery. Note that the promise will be rejected if the user object has no `email` property.
+
+## 2.72.3
+
+Unit tests passing.
+
+Regression tests passing.
+
+* The "apply to subpages" feature for page permissions has been greatly simplified and made easier to understand. There is now just one shared "copy these permissions to subpages now?" dropdown, which applies to ALL current permissions for the current page: "who can view this page," "these users can view," "these groups can edit," etc. 
+
+As the help text now properly explains, if you pick "yes" and save page settings as usual, the permissions of all subpages are updated to match **on a one-time basis.** After that, you can edit them normally for the subpages. This is an action that takes place at "save" time, it is not a setting that is remembered.
+
+This is good for laying down a baseline and then making fine-tuned adjustments per page, which is typical practice.
+
+Previously this choice appeared in several places, including as a highly confusing and visually cluttered dropdown within the list of permissions per user and group. While theoretically this allowed for propagating fine-tuned adjustments to subpages one at a time, in practice users did not understand it, including many enterprise customers who invest significant time in Apostrophe. Therefore a simpler solution is of greater overall value.
+
+* Regression fix: support for in-context, on-page editing of areas in array fields has been restored.
+
+* Attempts to save a field of type `object` with a missing `required` field now behave sensibly, you no longer see a spinner forever on a grayed-out page. Note that the use of `required` for the object itself has no meaning because there is always an object; you should make its fields required, or not, as you see fit.
+
+* "Move" and "Trash" operations on widgets now emit the Apostrophe events `widgetMoved` and `widgetTrashed`. The widget's container div is emitted as the argument to the event.
+
+## 2.72.2
+
+Unit tests passing.
+
+Regression tests passing.
+
+* The `apostrophe-jobs` `runNonBatch` method no longer crashes if the job-runner function provided does not return an object (for instance, because it takes a callback so its return value does not matter).
+* `apostrophe-attachments:list` task lists the URLs of all valid attachments, including all crops in all sizes.
+* `array` fields may be used in the `relationship` of a join. Thanks to Anthony Tarlao.
+* Added missing callback to asset bundle cleanup for cloud deployments, ensuring that the lock is eventually released and the old bundles are eventually removed.
+* Fixed documentation for `apos.jobs` methods re: the `labels` option.
+
+## 2.72.1
+
+Unit tests passing.
+
+Regression tests passing.
+
+* Moving a page beneath a parent that happens to be considered "not trash" should not automatically cause the child to be considered "not trash" when workflow is in effect, or when the `trashInSchema` flag has been opted into for `apostrophe-docs`. In these cases the trash flag is just another schema property. This bug led to pages inadvertently becoming live across all locales when moved in the page tree.
+* The server-side video schema field converter no longer crashes the process if given a `null` property, and correctly flags the field as in error if it is `required` and not present.
+* Any missing values for join relationships relating to permissions are now handled in a proper migration in apostrophe core, rather than a hack in apostrophe-workflow that adds significant startup time in certain situations.
+* Migration completion is now logged.
+* UX fix: UI/area controls no longer compete with "Add Content."
+
+Thanks to our enterprise support customers for their support of this work.
+
+## 2.72.0
+
+Unit tests passing.
+
+Regression tests passing.
+
+* Support for subdirectories of `lib/modules`. You must set the `nestedModuleSubdirs` option to `true` in `app.js`. You can then place your modules in nested subdirectories of `lib/modules`. **The names of the parent folders do not matter,** and **the name of the actual module folder must still match the name of the module.**
+
+In addition, when using this feature you may optionally move part of your `modules` configuration into a `modules.js` file in each directory. Here is an example:
+
+```javascript
+module.exports = {
+  'module-name': {},
+  'other-module-name': {}
+};
+```
+
+By following through with this approach you can make `app.js` much shorter. Configuration of Apostrophe modules installed via `npm` must still be done in `app.js`.
+
+* The `apostrophe-html-widgets` module now properly concatenates fields to the standard HTML field when `addFields` is used with it.
+
+* Fixed a crashing bug when an API was used in an atypical way. Thanks to Max Schlueter.
+
+## 2.71.1
+
+Unit tests passing.
+
+Regression tests passing.
+
+Recent changes to the markup for buttons broke drag and drop for widgets. This has been fixed.
+
+## 2.71.0
+
+Unit tests passing.
+
+Regression tests passing.
+
+* When two pieces or pages would have the same slug as the result of an insert or update, Apostrophe automatically appends a unique string. This makes sense for data integrity but as a user experience it leaves something to be desired.
+
+Beginning with this release, if you are editing the title in the piece or page settings editor and apostrophe is making automatic slug suggestions, these suggestions will *now include the suffix* needed to avoid a conflict. This gives you a chance to see what will happen, and decide to change the title or the slug in a better way. However, you can disable this by setting the `deconflictSlugs` option of the `apostrophe-docs` module explicitly to `false`. If you do, then from now on you will *receive a straightforward error message if the suggested slug is in conflict with another slug on the site.*
+
+* If you edit the slug directly and try to save it with a conflict, Apostrophe will always report a straightforward error in the editor, requiring you to fix it manually. This makes sense when you are editing the slug yourself, because it means you care about the exact value.
+
+For backwards compatibility and to resolve race conditions, the server will still automatically modify the slug to be unique in the rare event that a conflict arises during the save operation itself.
+
+* A simpler yet even better slug prevention feature, in many ways: all `apostrophe-pieces` modules now accept a `slugPrefix` option. For instance, if you set this option to `people-` for your `people` module and to `image-` for the `apostrophe-images` module, the slugs for your people and the photos of them you are uploading will never be in conflict.
+
+We appreciate our enterprise customers and their support of this work.
+
+## 2.70.1
+
+Unit tests passing.
+
+Regression tests passing.
+
+* Bug fix: when you attempt to edit a piece that someone else has open in the edit dialog box, you should receive a warning, and the option to take over or leave it alone. This worked, however the "advisory lock" was not released when *closing* the dialog box. So users saw superfluous warnings. The bug was related to calling `$.jsonCall` with the wrong order of arguments.
+* Bug fix: a user without permissions to lock a particular document could cause a process restart by attempting to lock it. No inappropriate access was granted.
+* When configuring the `csrf` option of `apostrophe-express`, you may now pass the `cookie` subproperty in order to pass configuration options to `res.cookie`, such as `secure: true`.
+* The jQuery `onSafe` plugin now respects the return value of the event handler, allowing the use of `return false;` in such handlers. Thanks to Fredrik Ekelund.
+* The Apostrophe `button` macro now renders a `button` rather than an anchor tag, except when the `url` option is present. Thanks to Fredrik Ekelund.
+
+## 2.70.0
+
+Unit tests passing.
+
+Regression tests passing.
+
+Apostrophe now allows direct import of unparsed CSS files via import flags of LESS. The best use of this option is to push a CSS file created by a SASS compiler or other LESS alternative.
+
+To push a CSS asset *without* compiling it as LESS, you may write:
+
+```
+self.pushAsset('stylesheet', { 
+  name: 'bundle',
+  import: {
+    inline: true
+  }
+});
+```
+
+Or, if you are pushing assets via the `stylesheets` option of the `apostrophe-assets` module, you may write:
+
+```
+'apostrophe-assets': {
+  stylesheets: [
+    {
+      name: 'bundle',
+      import: {
+        inline: true
+      }
+    }
+  ]
+}
+```
+
+The extension of the file may be either `.css` or `.less`; either way it is imported with no LESS compilation. Apostrophe will still modify URLs to accommodate the global `prefix` option, if present.
+
+## 2.69.1
+
+Unit tests passing.
+
+Regression tests passing.
+
+* In-context editing of areas nested in arrays now works correctly when the widget containing the array has just been added to the page for the first time.
+
 ## 2.69.0
 
 Unit tests passing.
